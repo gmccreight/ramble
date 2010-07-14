@@ -95,6 +95,21 @@ Ramble.Step = function(scenario) {
     this.comment = false;
     this.scenario = scenario;
 }
+Ramble.Report = function() {
+    this.scenarios = {
+        'undefined' : 0,
+        'pending' : 0,
+        'passed' : 0,
+        'failed' : 0
+    }
+    this.steps = {
+        'undefined' : 0,
+        'pending' : 0,
+        'passed' : 0,
+        'failed' : 0
+    }
+    this.time = 0
+}
 /**
  * Outputter Interface defines the methods all outputters should have.
  */
@@ -135,30 +150,35 @@ Ramble.IOutputter = {
     stop: function() {}
 };
 Ramble.HtmlOutputter = {
-    _currentFeature : null,
-    _currentScenario : null,
-    _currentSteps : null,
     results : null,
+    results_selector: '#results',
     start: function() {
         this.results = $(this.results_selector);
+        this._beforeOutput();
+        this._afterOutput();
     },
     outputFeature: function(feature) {
+        this._beforeOutput();
         var div = $('<div/>', { 'class': 'ramble-feature' });
         this.results.append(div);
         div.append($('<h3/>', { text: feature.title }));
         var description = feature.description.split('\n').join('<br/>');
         div.append($('<p/>', { 'class': 'ramble-description', html:description }));
         this._currentFeature = div;
+        this._afterOutput();
     },
     outputScenario: function(scenario) {
+        this._beforeOutput();
         var div = $('<div/>', { 'class': 'ramble-scenario' });
         this._currentFeature.append(div);
         div.append($('<h4/>', { text: scenario.title }));
         this._currentScenario = div;
         this._currentSteps = $('<ul/>', { 'class': 'ramble-steps' });
         div.append(this._currentSteps);
+        this._afterOutput();
     },
     outputStep: function(step) {
+        this._beforeOutput();
         var status = step.status;
         var className = 'ramble-'+status;
         var text = step.text;
@@ -169,9 +189,23 @@ Ramble.HtmlOutputter = {
             text += "<br />"+Ramble.Parser.getExampleCode(step, true);
         }
         var li = this._currentSteps.append($('<li/>', { 'class': className, html: text }));
+        this._afterOutput();
     },
-    stop: function() {},
-    results_selector: '#results'
+    stop: function(report) {
+        this._beforeOutput();
+        this._afterOutput();
+    },
+    _currentFeature : null,
+    _currentScenario : null,
+    _currentSteps : null,
+    _shouldScroll : true,
+    _beforeOutput : function() {
+        var scrollCur = this.results.attr("scrollTop") + this.results.height();
+        this._shouldScroll = ( scrollCur >= this.results.attr("scrollHeight") );
+    },
+    _afterOutput : function() {
+        if ( this._shouldScroll ) this.results.attr({ scrollTop: this.results.attr("scrollHeight") });
+    }
 };
 
 
@@ -298,6 +332,9 @@ Ramble.Runner =  {
                 break;
             }
             this._queue_index++;
+            if ( this._queue_index == this._queue.length ) {
+                this.outputter.stop();
+            }
         }
     },
     /**
@@ -372,7 +409,7 @@ Ramble.Runner =  {
     _queue: [],
     _queue_index: 0,
     _times: {
-        "medium":   700,
+        "medium":   600,
         "slow":     2000
     }
 }
