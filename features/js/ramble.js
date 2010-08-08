@@ -133,7 +133,7 @@ Ramble.IOutputter = {
      * @param Ramble.Scenario a ramble scenario object (defining .title)
      * @returns void
      */
-    ouputScenario: function(scenario) {},
+    outputScenario: function(scenario) {},
     /**
      * Output a step
      * @public
