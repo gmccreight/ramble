@@ -272,7 +272,7 @@ Ramble.Runner =  {
      * @returns void
      */
     run: function(elements) {
-        while (this._queue_index < this._queue.length-1) {
+        while (this._queue_index < this._queue.length) {
             if (Ramble.Runner.page_loading) {
                 return;
             } else if (Ramble.Runner.options.speed != "fast") {
