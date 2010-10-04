@@ -15,6 +15,12 @@ ramble.match(/^I press "(.+)"$/, function(button_text) {
   ramble.page_loading = true;
 });
 
+ramble.match(/^I click the "(.+)" div$/, function(element_text) {
+  var div = this.find('div').filter(function() { return $(this).text() == element_text; })
+  if(!div.length) throw("Can't find div named: " + element_text);
+  div.click();
+});
+
 ramble.match(/^I fill in "(.+)" with "(.+)"$/, function(label_text, value) {
   var label = this.find('label').filter(function() { return $(this).text() == label_text; }).first();
   var field = this.find('input#' + label.attr('for'));

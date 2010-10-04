@@ -318,6 +318,9 @@ Ramble.Runner =  {
                         });
                         if (found !== null) {
                             try {
+                                if ( step.match(/click/) ) {
+                                    elements = document.getElementById('browser').contentWindow.$('body');
+                                }
                                 var result = found.test.apply(elements, found.matches);
                                 item.status = "pass";
                             } catch (error) {
