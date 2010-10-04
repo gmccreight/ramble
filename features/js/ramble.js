@@ -223,6 +223,7 @@ Ramble.Runner =  {
     features: [],
     matchers: [],
     page_loading: false,
+    retry_on_fail_within_milliseconds: 0,
     options: {
         speed: "fast"
     },
@@ -290,6 +291,13 @@ Ramble.Runner =  {
             
             
             var item = this._queue[ this._queue_index ];
+
+            if ( item.start_time === undefined ) {
+                Ramble.Runner.retry_on_fail_within_milliseconds = 0;
+                var date = new Date();
+                item.start_time = date.getTime();
+            }
+
             var found;
             $.each(this._befores, function() {
                 this.apply(elements);
@@ -328,12 +336,25 @@ Ramble.Runner =  {
                             item.status = "missing";
                         }
                     }
-                    this.outputter.outputStep(item);
+
+                    if (Ramble.Runner.retry_on_fail_within_milliseconds > 0) {
+                      var date = new Date();
+                      var time = date.getTime();
+                      if ( time > item.start_time + Ramble.Runner.retry_on_fail_within_milliseconds ) {
+                        Ramble.Runner.retry_on_fail_within_milliseconds = 0;
+                      }
+                    }
+
+                    if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
+                        this.outputter.outputStep(item);
+                    }
                 break;
             }
-            this._queue_index++;
-            if ( this._queue_index == this._queue.length ) {
-                this.outputter.stop();
+            if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
+                this._queue_index++;
+                if ( this._queue_index == this._queue.length ) {
+                    this.outputter.stop();
+                }
             }
         }
     },
