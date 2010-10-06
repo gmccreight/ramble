@@ -6,17 +6,88 @@
     <link href="css/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
     <!--[if lte IE 8]><script type="text/javascript" src="js/html5.js"></script><![endif]-->
     <script src="js/jquery-1.4.2.js" type="text/javascript"></script>
+    <script src="js/underscore-min.js" type="text/javascript"></script>
     <script src="js/ramble.js" type="text/javascript"></script>
     <script src="support/paths.js" type="text/javascript"></script>
     <script src="steps/web-steps.js" type="text/javascript"></script>
     
     <script type="text/javascript">
+
+      function getQueryVariable(variable) {
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=");
+            if (pair[0] == variable) {
+                return unescape(pair[1]).replace(/\+/g, " ");
+            }
+        }
+        return undefined;
+      }
+
+      function filterFeaturesBasedOnQueryParams(all_features) {
+
+        var filtered_features = [];
+
+        var features_to_run = getQueryVariable("features") + '';
+        features_to_run = features_to_run.split(',');
+
+        var as_substr = getQueryVariable("f_sub") === "on" ? true : false;
+
+        for (var i in all_features) {
+
+            var keep_it = false;
+
+            if ( features_to_run.length === 1 && features_to_run[0] === "" ) {
+                keep_it = true;
+            }
+            else {
+                for (var x in features_to_run) {
+                    var f = features_to_run[x];
+                    if (as_substr) {
+                        if (all_features[i].indexOf(f) >= 0) {
+                            keep_it = true;
+                            break;
+                        }
+                    }
+                    else {
+                        if (all_features[i] === f) {
+                            keep_it = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (keep_it) {
+                filtered_features.push(all_features[i]);
+            }
+        }
+        return filtered_features;
+      }
+
       $(document).ready(function() {
         ramble.init({
             speed : "medium"
         });
-        ramble.loadFeatureFile('first.feature');
-        ramble.loadFeatureFile('second.feature');
+
+        $('#controls form input[name="features"]').val(getQueryVariable("features"));
+        var f_sub_checked = getQueryVariable("f_sub") === "on" ? true : false;
+        $('#controls form input[name="f_sub"]').attr("checked", f_sub_checked);
+        $('#controls form input[name="scenario_titles"]').val(getQueryVariable("scenario_titles"));
+
+        var scenario_titles = getQueryVariable("scenario_titles");
+        if (scenario_titles) {
+            ramble.filter_scenarios(scenario_titles.split(","));
+        }
+
+        var all_features = ["first", "second"];
+
+        var features = filterFeaturesBasedOnQueryParams(all_features);
+        for (var i in features) {
+            ramble.loadFeatureFile(features[i] + '.feature');
+        }
+
         ramble.run();
       });
     </script>
@@ -28,6 +99,17 @@
     </header>
 
     <section id="controls">
+
+      <form action="">
+        feature file basenames (comma seperated):<br />
+        <input type="text" name="features" val="" /><br />
+        is substring of file basename:<br />
+        <input type="checkbox" name="f_sub" /><br /><br />
+        scenario names substrings (comma seperated):<br />
+        <input type="text" name="scenario_titles" val="" /><br />
+        <input type="submit" value="run features" />
+      </form>
+
       <p>Eventually there will be controls here to play/stop features as well as picking which features to run etc. 
         Also, the plan is to have a "Record" button allowing features to be build up via a UI.</p>
       <p>TODO: Make panes draggable<br/>

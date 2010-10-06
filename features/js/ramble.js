@@ -223,6 +223,7 @@ Ramble.Runner =  {
     features: [],
     matchers: [],
     page_loading: false,
+    scenario_filters: [],
     options: {
         speed: "fast"
     },
@@ -388,6 +389,9 @@ Ramble.Runner =  {
             }
         }
     },
+    filter_scenarios: function(string_or_regex_array) {
+      this.scenario_filters = string_or_regex_array;
+    },
     _parseFeatureFile: function(data, file) {
         var feature = Ramble.Parser.parseFeatureFile(data);
         this.addFeatureObject(feature);
@@ -396,6 +400,12 @@ Ramble.Runner =  {
         var queue = this._queue;
         queue.push(feature);
         $.each(feature.scenarios, function() {
+            var scenario = this;
+            if (Ramble.Runner.scenario_filters.length > 0) {
+              if (!_.any(_.map(Ramble.Runner.scenario_filters, function(x){ return scenario.title.match(x) }))) {
+                return;
+              }
+            }
             queue.push(this)
             $.each(this.steps, function() {
                 queue.push(this);
