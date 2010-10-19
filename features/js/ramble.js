@@ -224,9 +224,14 @@ Ramble.Runner =  {
     matchers: [],
     page_loading: false,
     retry_on_fail_within_milliseconds: 0,
-    scenario_filters: [],
+    _scenario_filters: [],
     options: {
         speed: "fast"
+    },
+    reset: function() {
+        this._queue = [];
+        this._queue_index = 0;
+        this._scenario_filters
     },
     init: function(options) {
         this.options = $.extend(this.options, options);
@@ -413,8 +418,8 @@ Ramble.Runner =  {
             }
         }
     },
-    filter_scenarios: function(string_or_regex_array) {
-      this.scenario_filters = string_or_regex_array;
+    filter_scenarios: function(comma_separated_str) {
+      this._scenario_filters = comma_separated_str.split(",");
     },
     _parseFeatureFile: function(data, file) {
         var feature = Ramble.Parser.parseFeatureFile(data);
@@ -425,8 +430,8 @@ Ramble.Runner =  {
         queue.push(feature);
         $.each(feature.scenarios, function() {
             var scenario = this;
-            if (Ramble.Runner.scenario_filters.length > 0) {
-              if (!_.any(_.map(Ramble.Runner.scenario_filters, function(x){ return scenario.title.match(x) }))) {
+            if (Ramble.Runner._scenario_filters.length > 0) {
+              if (!_.any(_.map(Ramble.Runner._scenario_filters, function(x){ return scenario.title.match(x) }))) {
                 return;
               }
             }

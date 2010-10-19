@@ -19,7 +19,7 @@
         for (var i = 0; i < vars.length; i++) {
             var pair = vars[i].split("=");
             if (pair[0] == variable) {
-                return unescape(pair[1]).replace(/\+/g, " ");
+                return pair[1];
             }
         }
         return undefined;
@@ -29,7 +29,7 @@
 
         var filtered_features = [];
 
-        var features_to_run = getQueryVariable("features") + '';
+        var features_to_run = getQueryVariable("features") ? getQueryVariable("features") : "";
         features_to_run = features_to_run.split(',');
 
         var as_substr = getQueryVariable("f_sub") === "on" ? true : false;
@@ -78,7 +78,7 @@
 
         var scenario_titles = getQueryVariable("scenario_titles");
         if (scenario_titles) {
-            ramble.filter_scenarios(scenario_titles.split(","));
+            ramble.filter_scenarios(scenario_titles);
         }
 
         var all_features = ["first", "second", "event_handler", "retry_on_fail"];
