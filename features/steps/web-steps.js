@@ -38,6 +38,12 @@ ramble.match(/^I should see "(.+)"$/, function(string) {
   if(this.text().indexOf(string) == -1) throw('Should have seen: ' + string);
 });
 
+ramble.match(/^I should eventually see "(.+)"$/, function(string) {
+  var ms = 5000;
+  ramble.retry_on_fail_within_milliseconds = ms;
+  if(this.text().indexOf(string) == -1) throw('Should have seen within ' + ms + ' milliseconds: ' + string);
+});
+
 ramble.match(/^I am on (.+)$/, function(path_name) {
   var path = ramble.pathTo(path_name);
   if(!path) throw('Problem getting path for: ' + path_name);

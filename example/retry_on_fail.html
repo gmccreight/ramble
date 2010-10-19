@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Example page four</title>
+    <meta name="author" content="Gordon McCreight" />
+    <link href="css/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        window.setTimeout(function(){document.getElementById('load_1').innerHTML = "This will load " + "in time"}, 2000);
+        window.setTimeout(function(){document.getElementById('load_2').innerHTML = "This will load " + "too slowly"}, 9000);
+    </script>
+  </head>
+  
+  <body>
+    <h1>This page has content that loads *after* it loads</h1>
+    <div id="load_1"></div>
+    <div id="load_2"></div>
+  </body>
+</html>

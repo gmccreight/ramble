@@ -8,3 +8,9 @@ Feature: First
     When I make the heading "blue"
     # Step doesn't exist for this so will show example:
     Then the heading should be "blue"
+
+  Scenario: User eventually sees a message
+    Given I am on the homepage
+    When I make the heading "blue"
+    # Step doesn't exist for this so will show example:
+    Then the heading should be "blue"
