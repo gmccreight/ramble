@@ -8,7 +8,11 @@
 var Ramble = {
     debug: false,
     _debug: function() {
-        if (this.debug) console.log(arguments);
+        if (this.debug) {
+            if (window.console && window.console.log) {
+                window.console.log(arguments);
+            }
+        }
     }
 }
 
@@ -143,6 +147,12 @@ Ramble.IOutputter = {
      */
     outputStep: function(step, status) {},
     /**
+     * Output the final report
+     * @public
+     * @returns void
+     */
+    outputReport: function() {},
+    /**
      * Stop output for a suite of features
      * @public
      * @returns void
@@ -191,8 +201,20 @@ Ramble.HtmlOutputter = {
         var li = this._currentSteps.append($('<li/>', { 'class': className, html: text }));
         this._afterOutput();
     },
+    outputReport: function() {
+      if (Ramble.Runner.failed_items.length === 0) {
+        var className = "ramble-pass";
+        var text = "All steps passed";
+      }
+      else {
+        var className = "ramble-fail";
+        var text = Ramble.Runner.failed_items.length + " steps failed";
+      }
+      $(this.results_selector).append($('<div/>', { 'class': className, html: text }));
+    },
     stop: function(report) {
         this._beforeOutput();
+        this.outputReport();
         this._afterOutput();
     },
     _currentFeature : null,
@@ -224,14 +246,16 @@ Ramble.Runner =  {
     matchers: [],
     page_loading: false,
     retry_on_fail_within_milliseconds: 0,
+    failed_items: [],
     _scenario_filters: [],
+    pause_ms: 0,
     options: {
         speed: "fast"
     },
     reset: function() {
         this._queue = [];
         this._queue_index = 0;
-        this._scenario_filters
+        this._scenario_filters = [];
     },
     init: function(options) {
         this.options = $.extend(this.options, options);
@@ -242,7 +266,16 @@ Ramble.Runner =  {
             this.iframe.load(function() {
                 Ramble.Runner.page_loading = false;
                 var contents = $(this).contents();
-                contents.find('a').click(function() {
+                var links_without_events = contents.find('a').filter(function() {
+                    if ( document.getElementById('browser').contentWindow.$ ) {
+                      var events = document.getElementById('browser').contentWindow.$.data(this, 'events');
+                      return ! events;
+                    }
+                    else {
+                      return true;
+                    }
+                });
+                links_without_events.click(function() {
                     Ramble.Runner.getUrl($(this).attr('href'));
                 })
                 contents.find('form').submit(function() {
@@ -282,7 +315,11 @@ Ramble.Runner =  {
         while (this._queue_index < this._queue.length) {
             if (Ramble.Runner.page_loading) {
                 return;
-            } else if (Ramble.Runner.options.speed != "fast") {
+            }
+
+            var item = this._queue[ this._queue_index ];
+            
+            if (Ramble.Runner.options.speed != "fast") {
                 var date = new Date();
                 var time = date.getTime();
                 clearTimeout(Ramble.Runner._time_out);
@@ -295,11 +332,9 @@ Ramble.Runner =  {
                 Ramble.Runner._time_next = time + Ramble.Runner._times[ Ramble.Runner.options.speed ];
             }
             
-            
-            var item = this._queue[ this._queue_index ];
-
             if ( item.start_time === undefined ) {
                 Ramble.Runner.retry_on_fail_within_milliseconds = 0;
+                Ramble.Runner.pause_ms = 0;
                 var date = new Date();
                 item.start_time = date.getTime();
             }
@@ -332,9 +367,6 @@ Ramble.Runner =  {
                         });
                         if (found !== null) {
                             try {
-                                if ( step.match(/click/) ) {
-                                    elements = document.getElementById('browser').contentWindow.$('body');
-                                }
                                 var result = found.test.apply(elements, found.matches);
                                 item.status = "pass";
                             } catch (error) {
@@ -347,25 +379,41 @@ Ramble.Runner =  {
                     }
 
                     if (Ramble.Runner.retry_on_fail_within_milliseconds > 0) {
-                      var date = new Date();
-                      var time = date.getTime();
-                      if ( time > item.start_time + Ramble.Runner.retry_on_fail_within_milliseconds ) {
-                        Ramble.Runner.retry_on_fail_within_milliseconds = 0;
-                      }
+                        var date = new Date();
+                        var time = date.getTime();
+                        if ( time > item.start_time + Ramble.Runner.retry_on_fail_within_milliseconds ) {
+                            Ramble.Runner.retry_on_fail_within_milliseconds = 0;
+                        }
                     }
 
-                    if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
-                        this.outputter.outputStep(item);
+                    if (Ramble.Runner.pause_ms > 0) {
+                        var date = new Date();
+                        var time = date.getTime();
+                        if ( time > item.start_time + Ramble.Runner.pause_ms ) {
+                            Ramble.Runner.pause_ms = 0;
+                        }
+                    }
+
+                    if (Ramble.Runner.pause_ms === 0) {
+                        if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
+                            if (item.status === "fail") {
+                                Ramble.Runner.failed_items.push(item);
+                            }
+                            this.outputter.outputStep(item);
+                        }
                     }
                 break;
             }
-            if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
-                this._queue_index++;
-                if ( this._queue_index == this._queue.length ) {
-                    this.outputter.stop();
+            if (Ramble.Runner.pause_ms === 0) {
+                if (Ramble.Runner.retry_on_fail_within_milliseconds === 0 || item.status != "fail") {
+                    this._queue_index++;
+                    if ( this._queue_index == this._queue.length ) {
+                        this.outputter.stop();
+                    }
                 }
             }
         }
+
     },
     /**
      * Add a matcher
@@ -430,12 +478,14 @@ Ramble.Runner =  {
         queue.push(feature);
         $.each(feature.scenarios, function() {
             var scenario = this;
+
             if (Ramble.Runner._scenario_filters.length > 0) {
               if (!_.any(_.map(Ramble.Runner._scenario_filters, function(x){ return scenario.title.match(x) }))) {
                 return;
               }
             }
-            queue.push(this)
+
+            queue.push(this);
             $.each(this.steps, function() {
                 queue.push(this);
             })
