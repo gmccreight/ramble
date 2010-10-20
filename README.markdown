@@ -24,7 +24,7 @@ The basic file structure is very similar to Cucumber:
         index.html
       - js
           ramble.js
-          jquery-1.4.2.js
+          jquery-1.4.3.min.js
         my.feature
       - steps
           web-steps.js

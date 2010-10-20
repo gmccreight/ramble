@@ -16,7 +16,12 @@ ramble.match(/^I press "(.+)"$/, function(button_text) {
 });
 
 ramble.match(/^I click the "(.+)" div$/, function(element_text) {
-  var div = this.find('div').filter(function() { return $(this).text() == element_text; })
+  var e = this;
+  var iframe_jq = document.getElementById('browser').contentWindow.$;
+  if (iframe_jq) {
+      e = iframe_jq('html');
+  }
+  var div = e.find('div').filter(function() { return $(this).text() == element_text; })
   if(!div.length) throw("Can't find div named: " + element_text);
   div.click();
 });
