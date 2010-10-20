@@ -49,3 +49,9 @@ ramble.match(/^I am on (.+)$/, function(path_name) {
   if(!path) throw('Problem getting path for: ' + path_name);
   ramble.getUrl(path);
 });
+
+ramble.match(/^I pause (.+)$/, function(num_ms) {
+  var ms = parseInt(num_ms);
+  ramble.pause_ms = ms;
+});
+

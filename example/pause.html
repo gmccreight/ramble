@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Pause</title>
+    <meta name="author" content="Gordon McCreight" />
+    <link href="css/screen.css" media="screen, projection" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        window.setTimeout(function(){document.getElementById('load_1').innerHTML = "This will load " + "after a pause"}, 3000);
+    </script>
+  </head>
+  
+  <body>
+    <h1>This page has content that loads *after* it loads</h1>
+    <div id="load_1"></div>
+  </body>
+</html>
