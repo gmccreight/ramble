@@ -25,47 +25,6 @@
         return undefined;
       }
 
-      function filterFeaturesBasedOnQueryParams(all_features) {
-
-        var filtered_features = [];
-
-        var features_to_run = getQueryVariable("features") ? getQueryVariable("features") : "";
-        features_to_run = features_to_run.split(',');
-
-        var as_substr = getQueryVariable("f_sub") === "on" ? true : false;
-
-        for (var i in all_features) {
-
-            var keep_it = false;
-
-            if ( features_to_run.length === 1 && features_to_run[0] === "" ) {
-                keep_it = true;
-            }
-            else {
-                for (var x in features_to_run) {
-                    var f = features_to_run[x];
-                    if (as_substr) {
-                        if (all_features[i].indexOf(f) >= 0) {
-                            keep_it = true;
-                            break;
-                        }
-                    }
-                    else {
-                        if (all_features[i] === f) {
-                            keep_it = true;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (keep_it) {
-                filtered_features.push(all_features[i]);
-            }
-        }
-        return filtered_features;
-      }
-
       $(document).ready(function() {
         ramble.init({
             speed : "medium"
@@ -76,14 +35,21 @@
         $('#controls form input[name="f_sub"]').attr("checked", f_sub_checked);
         $('#controls form input[name="scenario_titles"]').val(getQueryVariable("scenario_titles"));
 
+
+        var features_to_run = getQueryVariable("features");
+        var is_substr = getQueryVariable("f_sub") === "on" ? true : false;
+        if (features_to_run) {
+            ramble.filter_features(features_to_run, is_substr);
+        }
+
         var scenario_titles = getQueryVariable("scenario_titles");
         if (scenario_titles) {
             ramble.filter_scenarios(scenario_titles);
         }
 
-        var all_features = ["first", "second", "event_handler", "pause", "retry_on_fail"];
+        var features = ["first", "second", "event_handler", "pause", "retry_on_fail"];
 
-        var features = filterFeaturesBasedOnQueryParams(all_features);
+        //var features = filterFeaturesBasedOnQueryParams(all_features);
         for (var i in features) {
             ramble.loadFeatureFile(features[i] + '.feature');
         }

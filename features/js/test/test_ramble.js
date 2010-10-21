@@ -1,11 +1,11 @@
 $(document).ready(function(){
 
-    var d = '';
-    d = d + "\n" + 'Feature: First';
-    d = d + "\n" + '  In order to value';
-    d = d + "\n" + '  As a role';
-    d = d + "\n" + '  I want feature';
-    d = d + "\n" + '';
+    var f1 = '';
+    f1 = f1 + "\n" + 'Feature: First';
+    f1 = f1 + "\n" + '  In order to value';
+    f1 = f1 + "\n" + '  As a role';
+    f1 = f1 + "\n" + '  I want feature';
+    f1 = f1 + "\n" + '';
 
     var sc1 = '';
     sc1 = sc1 + "\n" + '  Scenario: User paints the sky blue';
@@ -20,6 +20,13 @@ $(document).ready(function(){
     sc2 = sc2 + "\n" + '    When I make the heading "blue"';
     sc2 = sc2 + "\n" + '    Then the heading should be "blue"';
 
+    var f2 = '';
+    f2 = f2 + "\n" + 'Feature: Second';
+    f2 = f2 + "\n" + '  In order to value';
+    f2 = f2 + "\n" + '  As a role';
+    f2 = f2 + "\n" + '  I want feature';
+    f2 = f2 + "\n" + '';
+
     var file = "";
 
     module("Parsing");
@@ -27,7 +34,7 @@ $(document).ready(function(){
     test("scenario one", function() {
 
       ramble.reset();
-      ramble._parseFeatureFile(d + sc1, file);
+      ramble._parseFeatureFile(f1 + sc1, file);
 
       equals( ramble._queue.length, 6, "right number of items in queue" );
       equals( ramble._queue[0].type, "feature", "first is feature" );
@@ -44,7 +51,7 @@ $(document).ready(function(){
     test("scenario two", function() {
 
       ramble.reset();
-      ramble._parseFeatureFile(d + sc2, file);
+      ramble._parseFeatureFile(f1 + sc2, file);
 
       equals( ramble._queue.length, 5, "right number of items in queue" );
       equals( ramble._queue[0].type, "feature", "first is feature" );
@@ -57,9 +64,43 @@ $(document).ready(function(){
     test("both scenarios", function() {
 
       ramble.reset();
-      ramble._parseFeatureFile(d + sc1 + sc2, file);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, file);
 
       equals( ramble._queue.length, 10, "right number of items in queue" );
+
+    });
+
+    module("Filtering Features");
+
+    test("filter features - no filter", function() {
+
+      ramble.reset();
+      ramble._parseFeatureFile(f1 + sc1 + sc2, "user_interface.feature");
+      ramble._parseFeatureFile(f2 + sc1, "photo_form.feature");
+
+      equals( ramble._queue.length, 16, "right number of items in queue for no filter" );
+
+    });
+
+    test("filter features - first feature matches", function() {
+
+      ramble.reset();
+      ramble.filter_features("inter", true);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, "user_interface.feature");
+      ramble._parseFeatureFile(f2 + sc1, "photo_form.feature");
+
+      equals( ramble._queue.length, 10, "right number of items in queue for first filtered feature" );
+
+    });
+
+    test("filter features - second feature matches", function() {
+
+      ramble.reset();
+      ramble.filter_features("photo", true);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, "user_interface.feature");
+      ramble._parseFeatureFile(f2 + sc2, "photo_form.feature");
+
+      equals( ramble._queue.length, 5, "right number of items in queue for second filtered feature" );
 
     });
 
@@ -69,7 +110,7 @@ $(document).ready(function(){
 
       ramble.reset();
       ramble.filter_scenarios("paints the sky");
-      ramble._parseFeatureFile(d + sc1 + sc2, file);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, file);
 
       equals( ramble._queue.length, 6, "right number of items in queue" );
 
@@ -79,7 +120,7 @@ $(document).ready(function(){
 
       ramble.reset();
       ramble.filter_scenarios("John signs up");
-      ramble._parseFeatureFile(d + sc1 + sc2, file);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, file);
 
       equals( ramble._queue.length, 5, "right number of items in queue" );
 
@@ -89,7 +130,7 @@ $(document).ready(function(){
 
       ramble.reset();
       ramble.filter_scenarios("paints,John signs up");
-      ramble._parseFeatureFile(d + sc1 + sc2, file);
+      ramble._parseFeatureFile(f1 + sc1 + sc2, file);
 
       equals( ramble._queue.length, 10, "right number of items in queue" );
 

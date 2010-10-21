@@ -247,6 +247,8 @@ Ramble.Runner =  {
     page_loading: false,
     retry_on_fail_within_milliseconds: 0,
     failed_items: [],
+    _feature_filters: [],
+    _feature_filters_is_substr: false,
     _scenario_filters: [],
     pause_ms: 0,
     options: {
@@ -255,7 +257,9 @@ Ramble.Runner =  {
     reset: function() {
         this._queue = [];
         this._queue_index = 0;
+        this._feature_filters = [];
         this._scenario_filters = [];
+        this._feature_filters_is_substr = false;
     },
     init: function(options) {
         this.options = $.extend(this.options, options);
@@ -466,10 +470,27 @@ Ramble.Runner =  {
             }
         }
     },
+    filter_features: function(comma_separated_str, is_substr) {
+      this._feature_filters = comma_separated_str.split(",");
+      this._feature_filters_is_substr = is_substr;
+    },
     filter_scenarios: function(comma_separated_str) {
       this._scenario_filters = comma_separated_str.split(",");
     },
     _parseFeatureFile: function(data, file) {
+        if (Ramble.Runner._feature_filters.length > 0) {
+            if (!_.any(_.map(Ramble.Runner._feature_filters, function(x) {
+              if ( Ramble.Runner._feature_filters_is_substr ) {
+                  return file.match(x);
+              }
+              else {
+                  return file === x;
+              }
+            })))
+          {
+            return;
+          }
+        }
         var feature = Ramble.Parser.parseFeatureFile(data);
         this.addFeatureObject(feature);
     },
