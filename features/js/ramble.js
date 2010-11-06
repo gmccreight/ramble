@@ -205,12 +205,15 @@ Ramble.HtmlOutputter = {
       if (Ramble.Runner.failed_items.length === 0) {
         var className = "ramble-pass";
         var text = "All steps passed";
+        var pagetitle = "pass";
       }
       else {
         var className = "ramble-fail";
         var text = Ramble.Runner.failed_items.length + " steps failed";
+        var pagetitle = "###FAIL###";
       }
       $(this.results_selector).append($('<div/>', { 'class': className, html: text }));
+      document.title = pagetitle;
     },
     stop: function(report) {
         this._beforeOutput();
