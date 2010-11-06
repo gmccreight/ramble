@@ -37,7 +37,7 @@
 
 
         var features_to_run = getQueryVariable("features");
-        var is_substr = getQueryVariable("f_sub") === "on" ? true : false;
+        var is_substr = f_sub_checked;
         if (features_to_run) {
             ramble.filter_features(features_to_run, is_substr);
         }

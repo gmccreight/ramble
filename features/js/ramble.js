@@ -258,8 +258,8 @@ Ramble.Runner =  {
         this._queue = [];
         this._queue_index = 0;
         this._feature_filters = [];
-        this._scenario_filters = [];
         this._feature_filters_is_substr = false;
+        this._scenario_filters = [];
     },
     init: function(options) {
         this.options = $.extend(this.options, options);
