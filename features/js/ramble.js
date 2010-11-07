@@ -304,7 +304,7 @@ Ramble.Runner =  {
     loadFeatureFile: function(file) {
         //Ramble._debug('loadFeatureFile', file);
         $.ajax({
-            url: file,
+            url: file + "?",
             success: function(data) {
                 Ramble.Runner._parseFeatureFile(data, file);
             },
