@@ -52,6 +52,7 @@
         //var features = filterFeaturesBasedOnQueryParams(all_features);
         for (var i in features) {
             ramble.loadFeatureFile(features[i] + '.feature');
+            $('#feature_links').append($('<a/>', { href:"?features=" + features[i] + '.feature' , text: features[i] }));
         }
 
         ramble.run();
@@ -75,6 +76,10 @@
         <input type="text" name="scenario_titles" val="" /><br />
         <input type="submit" value="run features" />
       </form>
+
+      <div id="feature_links">
+          <div>Features:</div>
+      </div>
 
       <p>Eventually there will be controls here to play/stop features as well as picking which features to run etc. 
         Also, the plan is to have a "Record" button allowing features to be build up via a UI.</p>
